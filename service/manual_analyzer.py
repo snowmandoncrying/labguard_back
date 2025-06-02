@@ -2,9 +2,9 @@ import os
 import shutil
 import tempfile
 from fastapi import UploadFile
-from langchain.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,11 +24,17 @@ async def analyze_manual_file(file: UploadFile) -> str:
         docs = loader.load()
         splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
         split_docs = splitter.split_documents(docs)
-        llm = ChatOpenAI(model_name="gpt-4", openai_api_key=OPENAI_API_KEY)
-        full_text = "\n".join([d.page_content for d in split_docs])
-        question = "이 매뉴얼에서 나타나는 잠재적, 위험요소와 주의사항을 요약해줘."
-        response = llm.predict(f"{question}\n\n{full_text}")
-        return response.strip()
+        llm = ChatOpenAI(model_name="gpt-4o", openai_api_key=OPENAI_API_KEY)
+        question = "이 매뉴얼에서 나타나는 잠재적 위험요소와 주의사항을 요약해줘."
+        # chunk별 요약
+        chunk_summaries = []
+        for chunk in split_docs:
+            chunk_summary = llm.predict(f"{question}\n\n{chunk.page_content}")
+            chunk_summaries.append(chunk_summary.strip())
+        # chunk 요약을 다시 합쳐서 최종 요약
+        final_input = f"{question}\n\n" + "\n".join(chunk_summaries)
+        final_summary = llm.predict(final_input)
+        return final_summary.strip()
     finally:
         try:
             shutil.rmtree(temp_dir)
