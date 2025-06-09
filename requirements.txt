@@ -1,5 +1,11 @@
 fastapi
 uvicorn
 langchain
+langchain-openai
+langchain-community
+langsmith
 python-dotenv
-openai 
+openai
+pydantic
+pytesseract
+pdf2image 
