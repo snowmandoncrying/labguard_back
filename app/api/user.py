@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserOut, UserUpdate, UserLogin
 import app.crud.user_crud as crud_user
 from app.db.database import get_db
 from app.core.security import verify_password, create_access_token
 from app.dependencies import get_current_user
+from datetime import timedelta
 
 router = APIRouter(prefix="/api/user", tags=["user"])
 
@@ -18,12 +19,17 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
 
 # 로그인 (JWT 발급)
 @router.post("/login")
-def login(form_data: UserLogin, db: Session = Depends(get_db)):
+def login(form_data: UserLogin, response: Response, db: Session = Depends(get_db)):
     db_user = crud_user.get_user_by_email(db, form_data.email)
     if not db_user or not verify_password(form_data.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    access_token = create_access_token(data={"sub": db_user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token_expires = timedelta(minutes=5)
+    refresh_token_expires = timedelta(minutes=10)
+    access_token = create_access_token(data={"sub": db_user.email}, expires_delta=access_token_expires)
+    refresh_token = create_access_token(data={"sub": db_user.email}, expires_delta=refresh_token_expires)
+    response.set_cookie(key="access_token", value=access_token, httponly=True)
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 # 내 정보 조회 (JWT 필요)
 @router.get("/me", response_model=UserOut)
