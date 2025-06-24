@@ -7,7 +7,7 @@ from app.core.security import verify_password, create_access_token
 from app.dependencies import get_current_user
 from datetime import timedelta
 
-router = APIRouter(prefix="/api/user", tags=["user"])
+router = APIRouter(prefix="/user", tags=["user"])
 
 # 회원가입
 @router.post("/signup", response_model=UserOut)
