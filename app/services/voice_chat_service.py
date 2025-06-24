@@ -61,7 +61,7 @@ def handle_voice_chat(audio_bytes: bytes, manual_id: str, user_id: str) -> Dict[
         logger.info(f"[{user_id}] 텍스트 분석 시작")
         
         try:
-            chat_result = agent_chat_answer(manual_id, input_text, user_id)
+            chat_result = agent_chat_answer(manual_id, "user", input_text, user_id)
             chat_response = chat_result.get("response", "응답을 생성할 수 없습니다.")
             processing_info["chat_success"] = True
             logger.info(f"[{user_id}] 텍스트 분석 성공")
@@ -142,7 +142,7 @@ def handle_voice_chat_simple(audio_bytes: bytes, manual_id: str, user_id: str) -
         input_text = transcribe_whisper(audio_bytes)
         
         # 2. 텍스트 분석: 기존 agent_chat_answer 사용
-        response_result = agent_chat_answer(manual_id, input_text, user_id)
+        response_result = agent_chat_answer(manual_id, "user", input_text, user_id)
         response = response_result.get("response", "응답을 생성할 수 없습니다.")
         
         # 3. TTS: 텍스트 → 음성

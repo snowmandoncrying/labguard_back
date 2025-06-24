@@ -89,7 +89,8 @@ async def web_voice_chat(
         try:
             ai_response = agent_chat_answer(
                 manual_id=manual_id,
-                question=input_text,
+                sender="user",
+                message=input_text,
                 user_id=user_id
             )
             response_text = ai_response.get("response", "죄송합니다. 답변을 생성할 수 없습니다.")

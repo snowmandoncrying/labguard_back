@@ -16,10 +16,16 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
 
     payload = decode_access_token(token)
     if payload is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
 
     user = get_user_by_email(db, payload.get("sub"))
     if user is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
 
     return user

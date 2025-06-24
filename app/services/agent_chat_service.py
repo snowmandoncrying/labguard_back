@@ -126,7 +126,7 @@ def llm_classify_message_type(message: str) -> str:
     # 혹시라도 LLM이 엉뚱하게 답할 경우 방어
     if "experiment" in result:
         return "experiment_log"
-    return "question"
+    return "message"
 
 # 실험 로그 타입 분류
 def classify_experiment_type(message: str) -> str:
@@ -163,7 +163,7 @@ def get_manual_search_tool(manual_id):
         description=f"{manual_id} 매뉴얼에서 검색합니다."
     )
 
-def agent_chat_answer(manual_id: str, question: str, user_id: str = "default_user", session_id: str = None, history: List[Dict[str, str]] = None) -> Dict[str, str]:
+def agent_chat_answer(manual_id: str, sender: str, message: str, user_id: str = "default_user", session_id: str = None, history: List[Dict[str, str]] = None) -> Dict[str, str]:
     """
     개선된 에이전트 답변 함수 (LLM 기반 메시지 분류)
     Returns: {"response": str, "type": str, "logged": bool, "session_id": str}
@@ -175,12 +175,12 @@ def agent_chat_answer(manual_id: str, question: str, user_id: str = "default_use
         session_id = str(uuid.uuid4())
 
     # === LLM 기반 메시지 타입 분류 ===
-    message_type = llm_classify_message_type(question)
+    message_type = llm_classify_message_type(message)
     
     if message_type == "experiment_log":
         # 실험 로그로 처리
-        exp_type = classify_experiment_type(question)
-        experiment_logger.add_experiment_log(user_id, question, exp_type)
+        exp_type = classify_experiment_type(message)
+        experiment_logger.add_experiment_log(user_id, message, exp_type)
         
         # 실험 로그에 대한 응답 생성
         responses = {
@@ -238,7 +238,7 @@ manual_id {manual_id}에 해당하는 매뉴얼만 검색해야 한다.
                     chat_history_messages.append(AIMessage(content=turn["content"]))
 
         response = agent_executor.invoke({
-            "input": question,
+            "input": message,
             "chat_history": chat_history_messages
         })
         answer = response.get("output", "죄송합니다, 답변을 생성하지 못했습니다.")
@@ -248,13 +248,20 @@ manual_id {manual_id}에 해당하는 매뉴얼만 검색해야 한다.
             session_id=session_id,
             user_id=user_id,
             manual_id=manual_id,
-            question=question,
-            answer=answer
+            sender='user',
+            message=message
+        )
+        chat_log_service.add_chat_to_cache(
+            session_id=session_id,
+            user_id=user_id,
+            manual_id=manual_id,
+            sender='ai',
+            message=answer
         )
         
         return {
             "response": answer,
-            "type": "question",
+            "type": "message",
             "logged": True,
             "session_id": session_id
         }
@@ -290,15 +297,15 @@ if __name__ == "__main__":
     user_id = "researcher_001"
     
     # 실험 진행 상황 로그
-    result1 = agent_chat_answer(manual_id, "PCR 실험 시작했어요", user_id)
+    result1 = agent_chat_answer(manual_id, "researcher_001", "PCR 실험 시작했어요", user_id)
     print("Response 1:", result1)
     
     # 질문
-    result2 = agent_chat_answer(manual_id, "PCR 온도는 몇도로 설정해야 하나요?", user_id)
+    result2 = agent_chat_answer(manual_id, "researcher_001", "PCR 온도는 몇도로 설정해야 하나요?", user_id)
     print("Response 2:", result2)
     
     # 실험 결과 로그
-    result3 = agent_chat_answer(manual_id, "PCR 결과가 나왔는데 밴드가 흐릿하게 나왔어요", user_id)
+    result3 = agent_chat_answer(manual_id, "researcher_001", "PCR 결과가 나왔는데 밴드가 흐릿하게 나왔어요", user_id)
     print("Response 3:", result3)
     
     # 보고서 생성

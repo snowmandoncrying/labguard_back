@@ -12,3 +12,9 @@ def create_chat_log_batch(db: Session, logs: List[Dict]):
     db.add_all(log_objects)
     db.commit()
     return log_objects
+
+def create_chat_log(db: Session, log: Dict):
+    db_log = ChatLog(**log)
+    db.add(db_log)
+    db.commit()
+    return db_log

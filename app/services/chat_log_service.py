@@ -12,18 +12,18 @@ class ChatLogService:
     def __init__(self):
         self.redis_conn = get_redis_conn()
 
-    def add_chat_to_cache(self, session_id: str, user_id: str, manual_id: str, question: str, answer: str):
+    def add_chat_to_cache(self, session_id: str, user_id: str, manual_id: str, sender: str, message: str):
         """Adds a chat message to the Redis cache and checks if it needs to be flushed."""
         db = SessionLocal()
         try:
             # Convert string IDs to integer primary keys
-            # For user_id, we assume the string is the user's name
-            user = user_crud.get_user_by_name(db, name=user_id)
-            db_user_id = user.id if user else 1 # Default to 1 if user not found
+            user = user_crud.get_user_by_id(db, user_id=user_id)
+            db_user_id = user.id if user else None
+            if db_user_id is None:
+                print(f"Warning: User with user_id '{user_id}' not found.")
 
-            # For manual_id, we use the provided string manual_id to find the record
             manual = manuals_crud.get_manual_by_manual_id(db, manual_id=manual_id)
-            db_manual_id = manual.id if manual else None # Can be None if no manual
+            db_manual_id = manual.id if manual else None
             
             if db_manual_id is None:
                 print(f"Warning: Manual with manual_id '{manual_id}' not found. Storing chat log with manual_id=NULL.")
@@ -32,8 +32,8 @@ class ChatLogService:
                 "session_id": session_id,
                 "user_id": db_user_id,
                 "manual_id": db_manual_id,
-                "question": question,
-                "answer": answer
+                "sender": sender,
+                "message": message
             }
             print("rpush", log_entry)
             result = self.redis_conn.rpush(CHAT_LOG_REDIS_KEY, json.dumps(log_entry))
@@ -48,7 +48,6 @@ class ChatLogService:
     def flush_chat_logs_from_cache_to_db(self):
         """Flushes chat logs from Redis to the main database."""
         try:
-            # Start a pipeline to ensure atomicity
             pipe = self.redis_conn.pipeline()
             pipe.lrange(CHAT_LOG_REDIS_KEY, 0, -1)
             pipe.delete(CHAT_LOG_REDIS_KEY)
@@ -62,15 +61,14 @@ class ChatLogService:
             
             db = SessionLocal()
             try:
-                chat_log_crud.create_chat_log_batch(db, logs=logs_to_db)
+                for log in logs_to_db:
+                    chat_log_crud.create_chat_log(db, log)
                 print(f"Flushed {len(logs_to_db)} chat logs from Redis to DB.")
             finally:
                 db.close()
 
         except Exception as e:
             print(f"Error flushing chat logs to DB: {e}")
-            # Note: Error handling is important here. If DB write fails,
-            # you might want to push the logs back to Redis or handle them differently.
 
 # Create a singleton instance
 chat_log_service = ChatLogService() 
