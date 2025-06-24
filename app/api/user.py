@@ -12,7 +12,7 @@ import re
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-router = APIRouter(prefix="/api/user", tags=["user"])
+router = APIRouter(prefix="/user", tags=["user"])
 
 def validate_password(password: str) -> bool:
     # 비밀번호는 최소 8자 이상, 숫자, 특수문자를 포함해야 합니다.

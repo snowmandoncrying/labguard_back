@@ -40,13 +40,13 @@ async def periodic_flush_chat_logs():
 #     print("Initializing database tables...")
 #     pass # create_tables 모듈을 import 하는 것만으로 테이블이 생성됩니다.
 
-app.include_router(manual_rag_router.router)
-app.include_router(manual_query_router.router)
-app.include_router(risk_analysis_router.router)
-app.include_router(manual_router)
+app.include_router(manual_rag_router.router, prefix="/api")
+app.include_router(manual_query_router.router, prefix="/api")
+app.include_router(risk_analysis_router.router, prefix="/api")
+app.include_router(manual_router, prefix="/api")
 # app.include_router(voice_chat_router)  # 사용 안함 - web_voice_chat_router 사용
-app.include_router(agent_chat_ws_router) 
-app.include_router(manual_analyze_router)
-app.include_router(experiment_analysis_router)
-app.include_router(web_voice_chat_router)
-app.include_router(user_router) 
+app.include_router(agent_chat_ws_router, prefix="/api") 
+app.include_router(manual_analyze_router, prefix="/api")
+app.include_router(experiment_analysis_router, prefix="/api")
+app.include_router(web_voice_chat_router, prefix="/api")
+app.include_router(user_router, prefix="/api") 
