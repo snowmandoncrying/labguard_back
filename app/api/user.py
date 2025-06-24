@@ -8,7 +8,7 @@ from app.dependencies import get_current_user
 from datetime import timedelta
 import logging
 import re
-from app.crud.refresh_token_crud import create_refresh_token
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
