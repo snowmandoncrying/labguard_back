@@ -1,0 +1,19 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.schemas.experiment import ExperimentCreate, ExperimentOut
+from app.db.database import get_db
+from app.crud import experiment as experiment_crud
+
+router = APIRouter(prefix="/api/experiment", tags=["Experiment"])
+
+@router.post("/", response_model=ExperimentOut)
+def create_experiment(exp: ExperimentCreate, db: Session = Depends(get_db)):
+    return experiment_crud.create_experiment(db, exp)
+
+@router.get("/{experiment_id}", response_model=ExperimentOut)
+def get_experiment_by_id(experiment_id: int, db: Session = Depends(get_db)):
+    return experiment_crud.get_experiment_by_id(db, experiment_id)
+
+@router.get("/session/{session_id}", response_model=ExperimentOut)
+def get_experiment_by_session(session_id: str, db: Session = Depends(get_db)):
+    return experiment_crud.get_experiment_by_session_id(db, session_id)
