@@ -6,8 +6,9 @@ class Experiment(Base):
     __tablename__ = "experiment"
 
     experiment_id = Column(Integer, primary_key=True, index=True)
-    
-    manual_id = Column(Integer, ForeignKey("manuals.id"), nullable=False)
+
+    # UUID → manuals.manual_id를 참조하도록 수정
+    manual_id = Column(String(64), ForeignKey("manuals.manual_id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     session_id = Column(String(100), unique=True, nullable=False)
     experiment_date = Column(Date, nullable=False)  # 날짜만 저장
