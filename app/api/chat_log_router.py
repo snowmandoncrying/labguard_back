@@ -5,7 +5,7 @@ from app.schemas.chat_log import ChatLogOut
 from app.crud import chat_log_crud
 from typing import List
 
-router = APIRouter(prefix="/api/chat", tags=["ChatLog"])
+router = APIRouter(prefix="/chat", tags=["ChatLog"])
 
 # 전체 채팅 불러오기
 @router.get("/{session_id}", response_model=List[ChatLogOut])
