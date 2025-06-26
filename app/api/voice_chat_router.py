@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 from app.services.stt_service import transcribe_whisper_with_validation
 from app.services.tts_service import tts_google_to_file
 from app.services.agent_chat_service import agent_chat_answer
-from app.db.redis_conn import redis_client
 from app.db.database import get_db
 from sqlalchemy.orm import Session
 
