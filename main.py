@@ -13,6 +13,8 @@ from app.db import create_tables
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.risk_analysis import RiskAnalysis
+from app.api.experiment_router import router as experiment_router
+from app.api.chat_log_router import router as chat_log_router
 
 app = FastAPI()
 
@@ -51,3 +53,5 @@ app.include_router(manual_analyze_router, prefix="/api")
 app.include_router(experiment_analysis_router, prefix="/api")
 app.include_router(web_voice_chat_router, prefix="/api")
 app.include_router(user_router, prefix="/api") 
+app.include_router(experiment_router, prefix="/api")
+app.include_router(chat_log_router, prefix="/api")
